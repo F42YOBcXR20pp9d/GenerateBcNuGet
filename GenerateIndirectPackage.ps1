@@ -3,10 +3,29 @@ Write-Host "Generate Indirect NuGet Package"
 . (Join-Path $PSScriptRoot "HelperFunctions.ps1")
 
 $appsFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
-$apps = @(Copy-AppFilesToFolder -appFiles @("$env:apps".Split(',')) -folder $appsFolder)
 
+$apps = @("$env:apps".Split(','))
+# Get workflow input
 $nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:nuGetServerUrl
 $nuGetToken = $env:nuGetToken
+
+$fromNugetServerUrl = $env:fromNugetServerUrl
+$fromNugetToken = $env:fromNugetToken
+$fromApps = @("$env:fromApps".Split(','))
+
+if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
+    @($fromApps) | % {
+        $packageParts = $_.Split(':')
+        
+        if ($fromApps.Count -eq 2) {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0] -version $packageParts[1] -select Exact
+        } else {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0]
+        }
+    }
+}
+
+$apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
 
 foreach($appFile in $apps) {
     $appJson = Get-AppJsonFromAppFile -appFile $appFile

@@ -4,8 +4,7 @@ Write-Host "Determine Artifacts"
 
 # Get array of apps
 $appsFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
-$apps = @(Copy-AppFilesToFolder -appFiles @("$env:apps".Split(',')) -folder $appsFolder)
-
+$apps = @("$env:apps".Split(','))
 # Get workflow input
 $nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:nuGetServerUrl
 $nuGetToken = $env:nuGetToken
@@ -14,6 +13,24 @@ if ($country -eq '') { $country = 'w1' }
 $artifactType = $env:artifactType
 if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
+
+$fromNugetServerUrl = $env:fromNugetServerUrl
+$fromNugetToken = $env:fromNugetToken
+$fromApps = @("$env:fromApps".Split(','))
+
+if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
+    @($fromApps) | % {
+        $packageParts = $_.Split(':')
+        
+        if ($fromApps.Count -eq 2) {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0] -version $packageParts[1] -select Exact
+        } else {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0]
+        }
+    }
+}
+
+$apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
 $runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken

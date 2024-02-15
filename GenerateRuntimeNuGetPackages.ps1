@@ -6,10 +6,37 @@ $containerName = 'bcserver'
 
 # Get apps and depenedencies
 $appsFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
-$apps = @(Copy-AppFilesToFolder -appFiles @("$env:apps".Split(',')) -folder $appsFolder)
+$apps = @("$env:apps".Split(','))
+$dependencies = @("$env:dependencies".Split(','))
 
 $dependenciesFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
-$dependencies = @(Copy-AppFilesToFolder -appFiles @("$env:dependencies".Split(',')) -folder $dependenciesFolder)
+
+$fromNugetServerUrl = $env:fromNugetServerUrl
+$fromNugetToken = $env:fromNugetToken
+$fromDependencies = @("$env:fromDependencies".Split(','))
+$fromApps = @("$env:fromApps".Split(','))
+
+if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
+    @($fromApps) | % {
+        $packageParts = $_.Split(':')
+        
+        if ($fromApps.Count -eq 2) {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0] -version $packageParts[1] -select Exact
+        } else {
+            $apps += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $packageParts[0]
+        }
+    }
+}
+
+
+if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
+    @($fromDependencies) | % {
+        $dependencies += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $fromNugetToken -packageName $_
+    }
+}
+
+$apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
+$dependencies = @(Copy-AppFilesToFolder -appFiles $dependencies -folder $dependenciesFolder)
 
 # Get parameters from workflow (and dependent job)
 $nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:nuGetServerUrl
