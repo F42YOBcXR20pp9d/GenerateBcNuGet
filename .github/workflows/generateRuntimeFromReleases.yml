@@ -1,4 +1,4 @@
-name: Generate Runtime Packages From NuGet
+name: Generate Runtime Packages From Releases
 
 # Controls when the workflow will run
 on:
