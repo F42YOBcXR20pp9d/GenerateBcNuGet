@@ -46,7 +46,7 @@ function LatestRelease {
         "Content-Type"  = "application/json"
     }
 
-    $filenamePattern = "*-Apps*"
+    $filenamePattern = "*-Apps-*"
 
     $releasesUri = "https://api.github.com/repos/$repo/releases/latest"
     $downloadUri = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern ).browser_download_url
