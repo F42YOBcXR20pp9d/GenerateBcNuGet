@@ -1,0 +1,130 @@
+name: Generate Runtime Packages From NuGet
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+    inputs:
+      toNuGetServerUrl:
+        description: NuGet server URL (leave empty to use RUNTIMENUGETSERVERURL variable)
+        required: false
+        default: ''
+      fromNugetServerUrl:
+        description: NuGet server URL
+        required: false
+        default: ''
+      repo:
+        description: NuGet server URL
+        required: false
+        default: ''     
+      country:
+        description: Country for the main runtime version (leave empty to use COUNTRY variable, default is w1)
+        required: false
+        default: ''
+      additionalCountries:
+        description: Comma separated list of additional countries (leave empty to use ADDITIONALCOUNTRIES variable, default is none)
+        required: false
+        default: ''
+      licenseFileUrl:
+        description: License File URL to use for versions before 22.0 (leave empty to use LICENSEFILEURL secret)
+        required: false
+        default: ''
+
+run-name: ${{ github.event.inputs.run-name != '' && github.event.inputs.run-name || github.workflow }}
+
+concurrency:
+  group: ${{ github.event.inputs.run-name != '' && github.event.inputs.run-name || github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  DetermineArtifacts:
+    name: Determine Business Central Artifacts
+    runs-on: [ ubuntu-latest ]
+    permissions:
+      contents: read
+    outputs:
+      artifactVersions: ${{ steps.determineArtifacts.outputs.ArtifactVersions }}
+      artifactVersionCount: ${{ steps.determineArtifacts.outputs.ArtifactVersionCount }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Mask input
+        shell: pwsh
+        env:
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "MaskInput.ps1")
+
+      - name: Determine Artifacts
+        id: determineArtifacts
+        shell: pwsh
+        env:
+          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
+          fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
+          country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
+          artifactVersion: ''
+          artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "DetermineArtifacts.ps1")
+
+  GenerateRuntimeNuGetPackages:
+    needs: [ DetermineArtifacts ]
+    if: needs.DetermineArtifacts.outputs.artifactVersionCount > 0
+    runs-on: [ windows-latest ]
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.DetermineArtifacts.outputs.artifactVersions) }}
+      fail-fast: false
+      max-parallel: 12
+    name: Runtime ${{ matrix.artifactVersion }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Mask input
+        shell: pwsh
+        env:
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "MaskInput.ps1")
+
+      - name: Generate Runtime NuGet Packages
+        shell: pwsh
+        env:
+          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
+          country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
+          additionalCountries: ${{ github.event.inputs.additionalCountries != '' && github.event.inputs.additionalCountries || vars.ADDITIONALCOUNTRIES }}
+          artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
+          licenseFileUrl: ${{ github.event.inputs.licenseFileUrl != '' && github.event.inputs.licenseFileUrl || secrets.LICENSEFILEURL }}
+          artifactVersion: ${{ matrix.artifactVersion }}
+          incompatibleArtifactVersion: ${{ matrix.incompatibleArtifactVersion }}
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "GenerateRuntimeNuGetPackages.ps1")
+
+  GenerateIndirectNuGetPackage:
+    name: Generate Indirect NuGet Package
+    needs: [ DetermineArtifacts, GenerateRuntimeNuGetPackages ]
+    if: needs.DetermineArtifacts.outputs.artifactVersionCount > 0
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Mask input
+        shell: pwsh
+        env:
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "MaskInput.ps1")
+
+      - name: Generate Indirect NuGet Package
+        shell: pwsh
+        env:
+          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
+          secrets: ${{ toJson(secrets) }}
+        run: |
+          . (Join-Path $env:GITHUB_WORKSPACE "GenerateIndirectPackage.ps1")

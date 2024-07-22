@@ -34,6 +34,31 @@ function GetRuntimeDependencyPackageId {
     return $runtimeDependencyPackageId
 }
 
+function LatestRelease {
+    Param(
+        [string] $token,
+        [string] $repo
+    )
+
+    $authenticationToken = [System.Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$token"))
+    $headers = @{
+        "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
+        "Content-Type"  = "application/json"
+    }
+
+    $repo = $env:repo
+    $filenamePattern = "*-Apps*"
+
+    $releasesUri = "https://api.github.com/repos/$repo/releases/latest"
+    $downloadUri = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern ).browser_download_url
+
+    $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
+
+    Invoke-WebRequest -Uri $downloadUri -Out $pathZip
+
+    exit $pathZip
+}
+
 function GetRuntimeDependencyPackageIds {
     Param(
         [string[]] $apps,
