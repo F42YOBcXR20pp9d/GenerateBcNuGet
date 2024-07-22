@@ -61,6 +61,7 @@ jobs:
         env:
           toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
+          repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           artifactVersion: ''
           artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
@@ -94,6 +95,7 @@ jobs:
         env:
           toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
+          repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           additionalCountries: ${{ github.event.inputs.additionalCountries != '' && github.event.inputs.additionalCountries || vars.ADDITIONALCOUNTRIES }}
           artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
@@ -126,5 +128,6 @@ jobs:
           toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
           secrets: ${{ toJson(secrets) }}
+          repo: ${{ github.event.inputs.repo }}
         run: |
           . (Join-Path $env:GITHUB_WORKSPACE "GenerateIndirectPackageFromReleases.ps1")
