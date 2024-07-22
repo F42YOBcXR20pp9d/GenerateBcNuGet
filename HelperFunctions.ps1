@@ -53,6 +53,9 @@ function LatestRelease {
 
     $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
     Write-Host "Downloading $downloadUri to $pathZip"
+    $headers = @{
+        "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
+    }
     Invoke-WebRequest -Method GET -Uri $downloadUri -Headers $headers -Out $pathZip
 
     exit $pathZip
