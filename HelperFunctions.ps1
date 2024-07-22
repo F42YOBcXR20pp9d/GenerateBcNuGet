@@ -52,7 +52,7 @@ function LatestRelease {
     $downloadUri = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern ).browser_download_url
 
     $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
-
+    Write-Host "Downloading $downloadUri to $pathZip"
     Invoke-WebRequest -Uri $downloadUri -Headers $headers -Out $pathZip
 
     exit $pathZip
