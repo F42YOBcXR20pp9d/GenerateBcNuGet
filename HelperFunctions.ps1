@@ -56,7 +56,7 @@ function LatestRelease {
     $headers = @{
         "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
     }
-    Invoke-WebRequest -Method GET -Uri $downloadUri -Headers $headers -Out $pathZip
+    Invoke-WebRequest -Method GET -Uri $downloadUri -Headers $headers -OutFile $pathZip
 
     exit $pathZip
 }
