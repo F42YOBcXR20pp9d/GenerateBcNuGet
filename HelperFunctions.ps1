@@ -54,14 +54,18 @@ function LatestRelease {
     $downloadUri = $asset.browser_download_url
 
     $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
-    Write-Host "Downloading $downloadUri to $pathZip"
     $headers = @{
         "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
         "Accept" = "application/octet-stream"
     }
     $download = "https://" + $token + ":@api.github.com/repos/$repo/releases/assets/$assetId"
     Invoke-WebRequest -Uri $download -Headers $headers -OutFile $pathZip
-    exit $pathZip
+    return $pathZip
+    
+    $outFolder = $([System.IO.Path]::GetTempPath())
+    Expand-Archive $pathZip -Force -DestinationPath $outFolder
+
+    return Get-ChildItem -Path $outFolder -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
 }
 
 function GetRuntimeDependencyPackageIds {
