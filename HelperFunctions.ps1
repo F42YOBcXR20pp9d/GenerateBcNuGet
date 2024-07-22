@@ -49,7 +49,9 @@ function LatestRelease {
     $filenamePattern = "*-Apps-*"
 
     $releasesUri = "https://api.github.com/repos/$repo/releases/latest"
-    $assetId = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern ).id
+    $asset = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern )
+    $assetId = $asset.id
+    $downloadUri = $asset.browser_download_url
 
     $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
     Write-Host "Downloading $downloadUri to $pathZip"
