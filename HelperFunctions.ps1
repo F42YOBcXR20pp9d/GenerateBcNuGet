@@ -53,7 +53,7 @@ function LatestRelease {
 
     $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
     Write-Host "Downloading $downloadUri to $pathZip"
-    Invoke-WebRequest -Uri $downloadUri -Headers $headers -Out $pathZip
+    Invoke-WebRequest -Method GET -Uri $downloadUri -Headers $headers -Out $pathZip
 
     exit $pathZip
 }
