@@ -60,8 +60,7 @@ function LatestRelease {
     }
     $download = "https://" + $token + ":@api.github.com/repos/$repo/releases/assets/$assetId"
     Invoke-WebRequest -Uri $download -Headers $headers -OutFile $pathZip
-    return $pathZip
-    
+
     $outFolder = $([System.IO.Path]::GetTempPath())
     Expand-Archive $pathZip -Force -DestinationPath $outFolder
 
