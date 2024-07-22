@@ -24,13 +24,7 @@ foreach($appFile in $apps) {
     }    
 }
 
-
-$apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
-$dependencies = @(Copy-AppFilesToFolder -appFiles $dependencies -folder $dependenciesFolder)
-
 # Get parameters from workflow (and dependent job)
-$nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:nuGetServerUrl
-$nuGetToken = $env:nuGetToken
 $country = $env:country
 if ($country -eq '') { $country = 'w1' }
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })
