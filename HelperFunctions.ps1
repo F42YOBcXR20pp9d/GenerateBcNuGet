@@ -61,10 +61,10 @@ function LatestRelease {
     $download = "https://" + $token + ":@api.github.com/repos/$repo/releases/assets/$assetId"
     Invoke-WebRequest -Uri $download -Headers $headers -OutFile $pathZip
 
-    $outFolder = $([System.IO.Path]::GetTempPath())
-    Expand-Archive $pathZip -Force -DestinationPath $outFolder
+    $output = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath 'out'
+    Expand-Archive $pathZip -Force -DestinationPath $output
 
-    return Get-ChildItem -Path $outFolder -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
+    return Get-ChildItem -Path $output -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
 }
 
 function GetRuntimeDependencyPackageIds {
