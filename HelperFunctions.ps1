@@ -46,7 +46,6 @@ function LatestRelease {
         "Content-Type"  = "application/json"
     }
 
-    $repo = $env:repo
     $filenamePattern = "*-Apps*"
 
     $releasesUri = "https://api.github.com/repos/$repo/releases/latest"
