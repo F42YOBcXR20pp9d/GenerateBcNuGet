@@ -66,7 +66,7 @@ jobs:
           artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
           secrets: ${{ toJson(secrets) }}
         run: |
-          . (Join-Path $env:GITHUB_WORKSPACE "DetermineArtifacts.ps1")
+          . (Join-Path $env:GITHUB_WORKSPACE "DetermineArtifactsFromReleases.ps1")
 
   GenerateRuntimeNuGetPackages:
     needs: [ DetermineArtifacts ]
@@ -102,7 +102,7 @@ jobs:
           incompatibleArtifactVersion: ${{ matrix.incompatibleArtifactVersion }}
           secrets: ${{ toJson(secrets) }}
         run: |
-          . (Join-Path $env:GITHUB_WORKSPACE "GenerateRuntimeNuGetPackages.ps1")
+          . (Join-Path $env:GITHUB_WORKSPACE "GenerateRuntimeNuGetPackagesFromReleases.ps1")
 
   GenerateIndirectNuGetPackage:
     name: Generate Indirect NuGet Package
@@ -127,4 +127,4 @@ jobs:
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
           secrets: ${{ toJson(secrets) }}
         run: |
-          . (Join-Path $env:GITHUB_WORKSPACE "GenerateIndirectPackage.ps1")
+          . (Join-Path $env:GITHUB_WORKSPACE "GenerateIndirectPackageFromReleases.ps1")
