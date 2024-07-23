@@ -18,8 +18,9 @@ $repo = $env:repo
 $apps = @(LatestRelease -token $token -repo $repo)
 
 foreach($appFile in $apps) {
-    Write-Host "Get dependencies for app $($appFile.id)"
+    Write-Host "Get dependencies for app $appFile"
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
+    Write-Host "Get dependencies for app $($appFile.id)"
     @($appJson.dependencies) | % {
         Write-Host "Get dependencies for app $($_.id)"
         $dependencies += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token -packageName "AL-Go-$($_.id)"
