@@ -59,7 +59,7 @@ jobs:
         id: determineArtifacts
         shell: pwsh
         env:
-          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
+          toNuGetServerUrl: ${{ github.event.inputs.toNuGetServerUrl != '' && github.event.inputs.toNuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
           repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           artifactVersion: ''
@@ -92,7 +92,7 @@ jobs:
       - name: Generate Runtime NuGet Packages
         shell: pwsh
         env:
-          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          toNuGetServerUrl: ${{ github.event.inputs.toNuGetServerUrl != '' && github.event.inputs.toNuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
           repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
@@ -124,7 +124,7 @@ jobs:
       - name: Generate Indirect NuGet Package
         shell: pwsh
         env:
-          toNuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          toNuGetServerUrl: ${{ github.event.inputs.toNuGetServerUrl != '' && github.event.inputs.toNuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
           fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
           secrets: ${{ toJson(secrets) }}
           repo: ${{ github.event.inputs.repo }}
