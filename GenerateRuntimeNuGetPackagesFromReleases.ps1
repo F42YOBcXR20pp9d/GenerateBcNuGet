@@ -18,6 +18,7 @@ $repo = $env:repo
 $apps = @(LatestRelease -token $token -repo $repo)
 
 foreach($appFile in $apps) {
+    Write-Host "Get dependencies for app $($appFile.id)"
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
     @($appJson.dependencies) | % {
         Write-Host "Get dependencies for app $($_.id)"
