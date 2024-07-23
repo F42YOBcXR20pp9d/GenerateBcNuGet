@@ -18,7 +18,7 @@ $repo = $env:repo
 $apps = @(LatestRelease -token $token -repo $repo)
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
-$runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $toNuGetServerUrl -nuGetToken $nuGetToken
+$runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token
 
 # If artifact Version is empty or it is a starting version (like 20.0-) then determine which artifact versions are needed
 if ($artifactVersion -eq '' -or $artifactVersion.EndsWith('-')) {
@@ -37,7 +37,7 @@ if ($artifactVersion -eq '' -or $artifactVersion.EndsWith('-')) {
     }
     else {
         # all indirect packages exists - determine which runtime package versions doesn't exist for the app
-        $artifactVersions = @(GetArtifactVersionsNeeded -apps $apps -allArtifactVersions $allArtifactVersions -runtimeDependencyPackageIds $runtimeDependencyPackageIds -nuGetServerUrl $toNuGetServerUrl -nuGetToken $nuGetToken)
+        $artifactVersions = @(GetArtifactVersionsNeeded -apps $apps -allArtifactVersions $allArtifactVersions -runtimeDependencyPackageIds $runtimeDependencyPackageIds -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token)
     }
 }
 else {

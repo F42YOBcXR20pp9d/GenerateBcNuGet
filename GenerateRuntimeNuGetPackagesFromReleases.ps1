@@ -39,7 +39,7 @@ $artifactVersion = $env:artifactVersion
 $incompatibleArtifactVersion = $env:incompatibleArtifactVersion
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
-$runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken
+$runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $nuGetServerUrl -nuGetToken $token
 
 $licenseFileUrl = $env:licenseFileUrl
 if ([System.Version]$artifactVersion -ge [System.Version]'22.0.0.0') {
@@ -54,7 +54,7 @@ foreach($appFile in $apps) {
     $appName = [System.IO.Path]::GetFileName($appFile)
     $runtimeDependencyPackageId = $runtimeDependencyPackageIds."$appName"
     $bcContainerHelperConfig.TrustedNuGetFeeds = @( 
-        [PSCustomObject]@{ "url" = $nuGetServerUrl;  "token" = $nuGetToken; "Patterns" = @($runtimeDependencyPackageId) }
+        [PSCustomObject]@{ "url" = $nuGetServerUrl;  "token" = $token; "Patterns" = @($runtimeDependencyPackageId) }
     )
     $package = Get-BcNuGetPackage -packageName $runtimeDependencyPackageId -version $artifactVersion -select Exact
     if (-not $package) {

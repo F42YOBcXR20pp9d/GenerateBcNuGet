@@ -24,7 +24,7 @@ foreach($appFile in $apps) {
 
     # Test whether a NuGet package exists for this app?
     $bcContainerHelperConfig.TrustedNuGetFeeds = @( 
-        [PSCustomObject]@{ "url" = $toNuGetServerUrl;  "token" = $nuGetToken; "Patterns" = @("*.$($appJson.id)") }
+        [PSCustomObject]@{ "url" = $toNuGetServerUrl;  "token" = $token; "Patterns" = @("*.$($appJson.id)") }
     )
     $package = Get-BcNuGetPackage -packageName $appJson.id -version $appJson.version -select Exact
     if (-not $package) {
