@@ -20,7 +20,7 @@ $apps = @(LatestRelease -token $token -repo $repo)
 foreach($appFile in $apps) {
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
     @($appJson.dependencies) | % {
-        $dependencies += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token -packageName $_.id
+        $dependencies += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token -packageName "AL-Go-$($_.id)"
     }    
 }
 
