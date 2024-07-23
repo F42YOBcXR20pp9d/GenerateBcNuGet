@@ -63,7 +63,7 @@ foreach($appFile in $apps) {
         while ($true) {
             try {
                 $cnt++
-                Push-BcNuGetPackage -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken -bcNuGetPackage $runtimePackage
+                Push-BcNuGetPackage -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token -bcNuGetPackage $runtimePackage
                 break
             }
             catch {

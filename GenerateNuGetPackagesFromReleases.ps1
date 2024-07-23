@@ -31,7 +31,7 @@ foreach($appFile in $apps) {
         # If the app doesn't exist as a nuGet package, create it
         $useAppFile = GetAppFile -appFile $appFile -symbolsOnly:$symbolsOnly
         $package = New-BcNuGetPackage -appfile $useAppFile -githubRepository $githubRepository -packageId $packageIdTemplate -dependencyIdTemplate $packageIdTemplate
-        Push-BcNuGetPackage -nuGetServerUrl $toNuGetServerUrl -nuGetToken $nuGetToken -bcNuGetPackage $package
+        Push-BcNuGetPackage -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token -bcNuGetPackage $package
         if ($useAppFile -ne $appFile) {
             Remove-Item -Path $useAppFile -Force
         }
