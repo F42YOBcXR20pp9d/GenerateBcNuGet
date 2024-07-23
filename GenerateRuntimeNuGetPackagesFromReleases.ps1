@@ -5,6 +5,7 @@ Write-Host "Generate Runtime NuGet Packages"
 $containerName = 'bcserver'
 
 $toNuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:toNuGetServerUrl
+$fromNugetServerUrl = $env:fromNugetServerUrl
 $secrets = $env:secrets | ConvertFrom-Json
 $token = $secrets.GHTOKENWORKFLOW
 

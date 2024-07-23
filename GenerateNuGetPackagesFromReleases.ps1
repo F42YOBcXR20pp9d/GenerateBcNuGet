@@ -3,6 +3,7 @@ Write-Host "Generate Runtime NuGet Packages"
 . (Join-Path $PSScriptRoot "HelperFunctions.ps1")
 
 $toNuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:toNuGetServerUrl
+$fromNugetServerUrl = $env:fromNugetServerUrl
 $secrets = $env:secrets | ConvertFrom-Json
 $token = $secrets.GHTOKENWORKFLOW
 
