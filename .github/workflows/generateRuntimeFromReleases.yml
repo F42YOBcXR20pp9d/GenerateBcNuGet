@@ -13,9 +13,9 @@ on:
         required: false
         default: ''
       repo:
-        description: NuGet server URL
+        description: Comma separated list of GitHub repos to build runtime packages from (e.g. org/app1,org/app2)
         required: false
-        default: ''     
+        default: ''
       country:
         description: Country for the main runtime version (leave empty to use COUNTRY variable, default is w1)
         required: false

@@ -15,9 +15,9 @@ $artifactType = $env:artifactType
 if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
 
-$repo = $env:repo
-$apps = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Apps-*")
-$dependencies = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Dependencies-*")
+$repos = $env:repo
+$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+$dependencies = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
 
 Write-Host "Apps: $($apps.Count)"
 $apps | ForEach-Object { Write-Host "  - $_" }

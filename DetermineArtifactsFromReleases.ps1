@@ -13,9 +13,9 @@ $artifactType = $env:artifactType
 if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
 
-$repo = $env:repo
+$repos = $env:repo
 
-$apps = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Apps-*")
+$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
 $runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token

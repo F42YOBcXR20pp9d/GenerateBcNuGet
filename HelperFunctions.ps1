@@ -71,6 +71,20 @@ function LatestRelease {
     return Get-ChildItem -Path $output -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
 }
 
+function LatestReleases {
+    Param(
+        [string] $token,
+        [string] $repos,
+        [string] $filenamePattern = "*-Apps-*"
+    )
+    $allFiles = @()
+    foreach ($repo in @($repos.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+        Write-Host "Downloading from $repo (pattern: $filenamePattern)"
+        $allFiles += @(LatestRelease -token $token -repo $repo -filenamePattern $filenamePattern)
+    }
+    return $allFiles
+}
+
 function GetRuntimeDependencyPackageIds {
     Param(
         [string[]] $apps,

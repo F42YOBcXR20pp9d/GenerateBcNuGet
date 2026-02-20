@@ -13,8 +13,8 @@ $artifactType = $env:artifactType
 if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
 
-$repo = $env:repo
-$apps = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Apps-*")
+$repos = $env:repo
+$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
 
 foreach($appFile in $apps) {
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
