@@ -37,7 +37,8 @@ function GetRuntimeDependencyPackageId {
 function LatestRelease {
     Param(
         [string] $token,
-        [string] $repo
+        [string] $repo,
+        [string] $filenamePattern = "*-Apps-*"
     )
 
     $authenticationToken = [System.Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$token"))
@@ -46,23 +47,26 @@ function LatestRelease {
         "Content-Type"  = "application/json"
     }
 
-    $filenamePattern = "*-Apps-*"
-
     $releasesUri = "https://api.github.com/repos/$repo/releases/latest"
-    $asset = ((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern )
-    $assetId = $asset.id
-    $downloadUri = $asset.browser_download_url
+    $assets = @((Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers).assets | Where-Object name -like $filenamePattern)
 
-    $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
-    $headers = @{
-        "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
-        "Accept" = "application/octet-stream"
+    if ($assets.Count -eq 0) {
+        Write-Host "No assets found matching pattern '$filenamePattern' in $repo"
+        return @()
     }
-    $download = "https://" + $token + ":@api.github.com/repos/$repo/releases/assets/$assetId"
-    Invoke-WebRequest -Uri $download -Headers $headers -OutFile $pathZip
 
-    $output = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath 'out'
-    Expand-Archive $pathZip -Force -DestinationPath $output
+    $output = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath ([Guid]::NewGuid().ToString())
+    foreach ($asset in $assets) {
+        $downloadUri = $asset.browser_download_url
+        $pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
+        $dlHeaders = @{
+            "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
+            "Accept" = "application/octet-stream"
+        }
+        $download = "https://" + $token + ":@api.github.com/repos/$repo/releases/assets/$($asset.id)"
+        Invoke-WebRequest -Uri $download -Headers $dlHeaders -OutFile $pathZip
+        Expand-Archive $pathZip -Force -DestinationPath $output
+    }
 
     return Get-ChildItem -Path $output -Filter "*.app" -Recurse | Select-Object -ExpandProperty FullName
 }

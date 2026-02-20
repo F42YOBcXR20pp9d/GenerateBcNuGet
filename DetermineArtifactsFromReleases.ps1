@@ -15,7 +15,7 @@ $artifactVersion = "$env:artifactVersion".Trim()
 
 $repo = $env:repo
 
-$apps = @(LatestRelease -token $token -repo $repo)
+$apps = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Apps-*")
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
 $runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token

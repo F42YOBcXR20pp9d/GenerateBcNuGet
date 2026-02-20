@@ -16,24 +16,15 @@ if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
 
 $repo = $env:repo
-$apps = @(LatestRelease -token $token -repo $repo)
+$apps = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Apps-*")
+$dependencies = @(LatestRelease -token $token -repo $repo -filenamePattern "*-Dependencies-*")
 
-foreach($appFile in $apps) {
-    Write-Host "Get dependencies for app $appFile"
-    $appJson = Get-AppJsonFromAppFile -appFile $appFile
-    Write-Host "Get dependencies for app $($appFile.id)"
-    @($appJson.dependencies) | % {
-        Write-Host "Get dependencies for app $($_.id)"
-        $dependencies += Get-BcNuGetPackage -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token -packageName "AL-Go-$($_.id)"
-    }    
-}
+Write-Host "Apps: $($apps.Count)"
+$apps | ForEach-Object { Write-Host "  - $_" }
+Write-Host "Dependencies: $($dependencies.Count)"
+$dependencies | ForEach-Object { Write-Host "  - $_" }
 
-# Get parameters from workflow (and dependent job)
-$country = $env:country
-if ($country -eq '') { $country = 'w1' }
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })
-$artifactType = $env:artifactType
-if ($artifactType -eq '') { $artifactType = 'sandbox' }
 # Artifact version is from the matrix
 $artifactVersion = $env:artifactVersion
 $incompatibleArtifactVersion = $env:incompatibleArtifactVersion
