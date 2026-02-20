@@ -21,8 +21,20 @@ $dependencies = @(LatestReleases -token $token -repos $repos -filenamePattern "*
 
 Write-Host "Apps: $($apps.Count)"
 $apps | ForEach-Object { Write-Host "  - $_" }
-Write-Host "Dependencies: $($dependencies.Count)"
+Write-Host "Dependencies from releases: $($dependencies.Count)"
 $dependencies | ForEach-Object { Write-Host "  - $_" }
+
+# Download any missing dependencies from the source NuGet feed
+if ($fromNugetServerUrl) {
+    $nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies $dependencies -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token)
+    if ($nugetDeps.Count -gt 0) {
+        Write-Host "Additional dependencies from NuGet: $($nugetDeps.Count)"
+        $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+        $dependencies += $nugetDeps
+    }
+}
+
+Write-Host "Total dependencies: $($dependencies.Count)"
 
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })
 # Artifact version is from the matrix

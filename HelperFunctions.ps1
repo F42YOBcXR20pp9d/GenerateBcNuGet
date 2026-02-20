@@ -265,6 +265,70 @@ function GenerateRuntimeAppFiles {
     return $global:runtimeAppFiles, $global:countrySpecificRuntimeAppFiles
 }
 
+function DownloadMissingDependencies {
+    Param(
+        [string[]] $apps,
+        [string[]] $existingDependencies,
+        [string] $nuGetServerUrl,
+        [string] $nuGetToken
+    )
+
+    # Collect app IDs we already have (apps + existing dependencies)
+    $knownAppIds = @{}
+    foreach ($appFile in ($apps + $existingDependencies)) {
+        $appJson = Get-AppJsonFromAppFile -appFile $appFile
+        $knownAppIds[$appJson.id] = $true
+    }
+
+    # Collect missing dependency app IDs from all apps
+    $missingDeps = @{}
+    foreach ($appFile in $apps) {
+        $appJson = Get-AppJsonFromAppFile -appFile $appFile
+        foreach ($dep in $appJson.dependencies) {
+            if ($dep.publisher -ne 'Microsoft' -and -not $knownAppIds.ContainsKey($dep.id)) {
+                $missingDeps[$dep.id] = $dep
+            }
+        }
+    }
+
+    $downloadedApps = @()
+
+    # Iteratively resolve dependencies (handles transitive deps)
+    while ($missingDeps.Count -gt 0) {
+        $newMissing = @{}
+        foreach ($depId in @($missingDeps.Keys)) {
+            $dep = $missingDeps[$depId]
+            Write-Host "Downloading dependency from NuGet: $($dep.name) by $($dep.publisher) (id: $depId, version: $($dep.version))"
+            $bcContainerHelperConfig.TrustedNuGetFeeds = @(
+                [PSCustomObject]@{ "url" = $nuGetServerUrl; "token" = $nuGetToken; "Patterns" = @("*.$depId") }
+            )
+            $package = Get-BcNuGetPackage -packageName $depId -version $dep.version -select Closest
+            if ($package) {
+                $appFiles = @(Get-ChildItem -Path $package -Filter "*.app" -Recurse)
+                foreach ($af in $appFiles) {
+                    Write-Host "  Found: $($af.Name)"
+                    $downloadedApps += $af.FullName
+                    $dlAppJson = Get-AppJsonFromAppFile -appFile $af.FullName
+                    $knownAppIds[$dlAppJson.id] = $true
+                    # Check for transitive dependencies
+                    foreach ($transDep in $dlAppJson.dependencies) {
+                        if ($transDep.publisher -ne 'Microsoft' -and -not $knownAppIds.ContainsKey($transDep.id)) {
+                            $newMissing[$transDep.id] = $transDep
+                        }
+                    }
+                }
+            }
+            else {
+                Write-Host "  WARNING: Could not find dependency $($dep.name) ($depId) on NuGet feed"
+            }
+            $knownAppIds[$depId] = $true
+        }
+        $missingDeps = $newMissing
+    }
+
+    return $downloadedApps
+}
+
 function GetAppFile {
     Param(
         [string] $appFile,
