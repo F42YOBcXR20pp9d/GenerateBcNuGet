@@ -16,6 +16,10 @@ on:
         description: Comma separated list of GitHub repos to build runtime packages from (e.g. org/app1,org/app2)
         required: false
         default: ''
+      artifactVersion:
+        description: Business Central artifacts version range (e.g. 25.0- for all versions >= 25.0, leave empty to auto-calculate)
+        required: false
+        default: ''
       country:
         description: Country for the main runtime version (leave empty to use COUNTRY variable, default is w1)
         required: false
@@ -62,7 +66,7 @@ jobs:
           toNuGetServerUrl: ${{ github.event.inputs.toNuGetServerUrl != '' && github.event.inputs.toNuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
           repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
-          artifactVersion: ''
+          artifactVersion: ${{ github.event.inputs.artifactVersion }}
           artifactType: ${{ github.event.inputs.artifactType != '' && github.event.inputs.artifactType || vars.ARTIFACTTYPE }}
           secrets: ${{ toJson(secrets) }}
         run: |
