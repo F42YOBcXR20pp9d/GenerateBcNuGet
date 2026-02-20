@@ -302,7 +302,7 @@ function DownloadMissingDependencies {
             $bcContainerHelperConfig.TrustedNuGetFeeds = @(
                 [PSCustomObject]@{ "url" = $nuGetServerUrl; "token" = $nuGetToken; "Patterns" = @("*.$depId") }
             )
-            $package = Get-BcNuGetPackage -packageName $depId -version $dep.version -select Closest
+            $package = Get-BcNuGetPackage -packageName $depId -version $dep.version -select Latest
             if ($package) {
                 $appFiles = @(Get-ChildItem -Path $package -Filter "*.app" -Recurse)
                 foreach ($af in $appFiles) {
