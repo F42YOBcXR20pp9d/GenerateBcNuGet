@@ -62,17 +62,15 @@ foreach($appFile in $apps) {
     $package = Get-BcNuGetPackage -packageName $runtimeDependencyPackageId -version $artifactVersion -select Exact
     if (-not $package) {
         $runtimePackage = New-BcNuGetPackage -appfile $runtimeAppFiles."$appName" -countrySpecificAppFiles $countrySpecificRuntimeAppFiles."$appName" -packageId $runtimeDependencyPackageId -packageVersion $artifactVersion -applicationDependency "[$artifactVersion,$incompatibleArtifactVersion)" -githubRepository $githubRepository
-        $cnt = 0
-        while ($true) {
-            try {
-                $cnt++
-                Push-BcNuGetPackage -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token -bcNuGetPackage $runtimePackage
-                break
+        try {
+            Push-BcNuGetPackage -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token -bcNuGetPackage $runtimePackage
+        }
+        catch {
+            if ($_.Exception.Message -like '*409*') {
+                Write-Host "Package already exists (409 Conflict), skipping: $runtimeDependencyPackageId $artifactVersion"
             }
-            catch {
-                if ($cnt -eq 5 -or $_.Exception.Message -notlike '*409*') { throw $_ }
-                Write-Host "Error pushing package: $($_.Exception.Message). Retry in 10 seconds"
-                Start-Sleep -Seconds 10
+            else {
+                throw $_
             }
         }
     }
