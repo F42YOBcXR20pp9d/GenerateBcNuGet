@@ -26,10 +26,20 @@ if ($org) {
     }
 }
 
-# Download all apps from all repos - every app gets a runtime package
-$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+# Get apps and dependencies from releases
+$appFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+$depFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
 
-Write-Host "Apps from releases: $($apps.Count)"
+# Non-Microsoft dependencies also get runtime packages
+$apps = @($appFiles)
+foreach ($depFile in $depFiles) {
+    $depJson = Get-AppJsonFromAppFile -appFile $depFile
+    if ($depJson.publisher -ne 'Microsoft') {
+        $apps += $depFile
+    }
+}
+
+Write-Host "Apps (incl. non-Microsoft dependencies): $($apps.Count)"
 $apps | ForEach-Object { Write-Host "  - $_" }
 
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package

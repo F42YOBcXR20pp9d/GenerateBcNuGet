@@ -19,10 +19,20 @@ if ($org) {
     }
 }
 
-# All apps from all repos get indirect packages
-$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+# Get apps and dependencies from releases
+$appFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+$depFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
 
-Write-Host "Apps: $($apps.Count)"
+# Non-Microsoft dependencies also get indirect packages
+$apps = @($appFiles)
+foreach ($depFile in $depFiles) {
+    $depJson = Get-AppJsonFromAppFile -appFile $depFile
+    if ($depJson.publisher -ne 'Microsoft') {
+        $apps += $depFile
+    }
+}
+
+Write-Host "Apps (incl. non-Microsoft dependencies): $($apps.Count)"
 $apps | ForEach-Object { Write-Host "  - $_" }
 
 foreach($appFile in $apps) {

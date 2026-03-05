@@ -26,14 +26,30 @@ if ($org) {
     }
 }
 
-# All apps from all repos get runtime packages
-$apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
-# Dependencies from releases are only used for compilation (e.g. third-party apps)
-$dependencies = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
+# Get apps and dependencies from releases
+$appFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
+$depFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
 
-Write-Host "Apps: $($apps.Count)"
+Write-Host "Apps from releases: $($appFiles.Count)"
+$appFiles | ForEach-Object { Write-Host "  - $_" }
+Write-Host "Dependencies from releases: $($depFiles.Count)"
+$depFiles | ForEach-Object { Write-Host "  - $_" }
+
+# Non-Microsoft dependencies also get runtime packages
+$apps = @($appFiles)
+$dependencies = @()
+foreach ($depFile in $depFiles) {
+    $depJson = Get-AppJsonFromAppFile -appFile $depFile
+    if ($depJson.publisher -eq 'Microsoft') {
+        $dependencies += $depFile
+    } else {
+        $apps += $depFile
+    }
+}
+
+Write-Host "Apps (incl. non-Microsoft dependencies, will get runtime): $($apps.Count)"
 $apps | ForEach-Object { Write-Host "  - $_" }
-Write-Host "Dependencies (compilation only): $($dependencies.Count)"
+Write-Host "Microsoft dependencies (compilation only): $($dependencies.Count)"
 $dependencies | ForEach-Object { Write-Host "  - $_" }
 
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })
