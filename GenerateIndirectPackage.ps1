@@ -27,6 +27,14 @@ if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
 
 $apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
 
+# Download any missing dependencies from the NuGet feed and treat them as apps that also need indirect packages
+$nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies @() -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken)
+if ($nugetDeps.Count -gt 0) {
+    Write-Host "Additional dependencies from NuGet (will also generate indirect packages): $($nugetDeps.Count)"
+    $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+    $apps += $nugetDeps
+}
+
 foreach($appFile in $apps) {
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
 

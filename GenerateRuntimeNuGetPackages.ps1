@@ -41,6 +41,19 @@ $dependencies = @(Copy-AppFilesToFolder -appFiles $dependencies -folder $depende
 # Get parameters from workflow (and dependent job)
 $nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServerUrl $env:nuGetServerUrl
 $nuGetToken = $env:nuGetToken
+
+# Download any missing dependencies from the NuGet feed and treat them as apps that also need runtime packages
+$nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies $dependencies -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken)
+if ($nugetDeps.Count -gt 0) {
+    Write-Host "Additional dependencies from NuGet (will also generate runtime): $($nugetDeps.Count)"
+    $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+    $apps += $nugetDeps
+}
+
+Write-Host "Apps (incl. dependencies): $($apps.Count)"
+$apps | ForEach-Object { Write-Host "  - $_" }
+Write-Host "Explicit dependencies: $($dependencies.Count)"
+$dependencies | ForEach-Object { Write-Host "  - $_" }
 $country = $env:country
 if ($country -eq '') { $country = 'w1' }
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })

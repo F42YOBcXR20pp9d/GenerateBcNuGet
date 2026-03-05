@@ -32,6 +32,14 @@ if ($fromNugetServerUrl -ne '' -and $fromNugetToken -ne '') {
 
 $apps = @(Copy-AppFilesToFolder -appFiles $apps -folder $appsFolder)
 
+# Download any missing dependencies from the NuGet feed and treat them as apps that also need runtime packages
+$nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies @() -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken)
+if ($nugetDeps.Count -gt 0) {
+    Write-Host "Additional dependencies from NuGet (will also generate runtime): $($nugetDeps.Count)"
+    $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+    $apps += $nugetDeps
+}
+
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
 $runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $nuGetServerUrl -nuGetToken $nuGetToken
 
