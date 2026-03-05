@@ -16,6 +16,16 @@ $artifactVersion = "$env:artifactVersion".Trim()
 $repos = $env:repo
 $apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
 
+# Download any missing dependencies from the source NuGet feed and treat them as apps that also need indirect packages
+if ($fromNugetServerUrl) {
+    $nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies @() -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token)
+    if ($nugetDeps.Count -gt 0) {
+        Write-Host "Additional dependencies from NuGet (will also generate indirect packages): $($nugetDeps.Count)"
+        $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+        $apps += $nugetDeps
+    }
+}
+
 foreach($appFile in $apps) {
     $appJson = Get-AppJsonFromAppFile -appFile $appFile
 

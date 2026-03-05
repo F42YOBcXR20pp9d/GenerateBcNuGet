@@ -24,17 +24,19 @@ $apps | ForEach-Object { Write-Host "  - $_" }
 Write-Host "Dependencies from releases: $($dependencies.Count)"
 $dependencies | ForEach-Object { Write-Host "  - $_" }
 
-# Download any missing dependencies from the source NuGet feed
+# Download any missing dependencies from the source NuGet feed and treat them as apps that also need runtime packages
 if ($fromNugetServerUrl) {
     $nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies $dependencies -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token)
     if ($nugetDeps.Count -gt 0) {
-        Write-Host "Additional dependencies from NuGet: $($nugetDeps.Count)"
+        Write-Host "Additional dependencies from NuGet (will also generate runtime): $($nugetDeps.Count)"
         $nugetDeps | ForEach-Object { Write-Host "  - $_" }
-        $dependencies += $nugetDeps
+        $apps += $nugetDeps
     }
 }
 
-Write-Host "Total dependencies: $($dependencies.Count)"
+Write-Host "Apps (incl. dependencies): $($apps.Count)"
+$apps | ForEach-Object { Write-Host "  - $_" }
+Write-Host "Explicit dependencies: $($dependencies.Count)"
 
 $additionalCountries = @("$env:additionalCountries".Split(',') | Where-Object { $_ -and $_ -ne $country })
 # Artifact version is from the matrix

@@ -68,6 +68,7 @@ jobs:
         shell: pwsh
         env:
           toNuGetServerUrl: ${{ github.event.inputs.toNuGetServerUrl != '' && github.event.inputs.toNuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
+          fromNugetServerUrl: ${{ github.event.inputs.fromNugetServerUrl }}
           repo: ${{ github.event.inputs.repo }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           artifactVersion: ${{ github.event.inputs.artifactVersion }}

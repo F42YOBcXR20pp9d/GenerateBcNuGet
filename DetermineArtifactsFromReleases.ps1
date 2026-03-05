@@ -17,6 +17,17 @@ $repos = $env:repo
 
 $apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
 
+# Download any missing dependencies from the source NuGet feed and treat them as apps that also need runtime packages
+$fromNugetServerUrl = $env:fromNugetServerUrl
+if ($fromNugetServerUrl) {
+    $nugetDeps = @(DownloadMissingDependencies -apps $apps -existingDependencies @() -nuGetServerUrl $fromNugetServerUrl -nuGetToken $token)
+    if ($nugetDeps.Count -gt 0) {
+        Write-Host "Additional dependencies from NuGet (will also generate runtime): $($nugetDeps.Count)"
+        $nugetDeps | ForEach-Object { Write-Host "  - $_" }
+        $apps += $nugetDeps
+    }
+}
+
 # Determine runtime dependency package ids for all apps and whether any of the apps doesn't exist as a nuGet package
 $runtimeDependencyPackageIds, $newPackage = GetRuntimeDependencyPackageIds -apps $apps -nuGetServerUrl $toNuGetServerUrl -nuGetToken $token
 
