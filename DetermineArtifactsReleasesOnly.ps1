@@ -13,7 +13,18 @@ $artifactType = $env:artifactType
 if ($artifactType -eq '') { $artifactType = 'sandbox' }
 $artifactVersion = "$env:artifactVersion".Trim()
 
+# Auto-discover repos from org or use explicit list
+$org = $env:org
 $repos = $env:repos
+if ($org) {
+    $discoveredRepos = @(DiscoverOrgRepos -token $token -org $org -filenamePattern "*-Apps-*")
+    if ($repos) {
+        $repos = ($repos.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }) + $discoveredRepos | Select-Object -Unique
+        $repos = $repos -join ','
+    } else {
+        $repos = $discoveredRepos -join ','
+    }
+}
 
 # Download all apps from all repos - every app gets a runtime package
 $apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")

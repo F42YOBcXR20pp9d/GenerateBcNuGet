@@ -7,9 +7,14 @@ on:
         description: NuGet server URL to push runtime packages to (leave empty to use RUNTIMENUGETSERVERURL variable)
         required: false
         default: ''
+      org:
+        description: GitHub org - auto-discovers all repos with releases containing *-Apps-* assets
+        required: false
+        default: ''
       repos:
-        description: Comma separated list of GitHub repos - ALL apps from all repos get runtime packages (e.g. org/app1,org/app2,org/license-app)
-        required: true
+        description: Comma separated list of additional GitHub repos (combined with auto-discovered repos from org)
+        required: false
+        default: ''
       country:
         description: Country for the main runtime version (leave empty to use COUNTRY variable, default is w1)
         required: false
@@ -66,6 +71,7 @@ jobs:
         shell: pwsh
         env:
           nuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || vars.RUNTIMENUGETSERVERURL }}
+          org: ${{ github.event.inputs.org }}
           repos: ${{ github.event.inputs.repos }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           artifactVersion: ${{ github.event.inputs.artifactVersion }}
@@ -99,6 +105,7 @@ jobs:
         shell: pwsh
         env:
           nuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          org: ${{ github.event.inputs.org }}
           repos: ${{ github.event.inputs.repos }}
           country: ${{ github.event.inputs.country != '' && github.event.inputs.country || vars.COUNTRY }}
           additionalCountries: ${{ github.event.inputs.additionalCountries != '' && github.event.inputs.additionalCountries || vars.ADDITIONALCOUNTRIES }}
@@ -130,6 +137,7 @@ jobs:
         shell: pwsh
         env:
           nuGetServerUrl: ${{ github.event.inputs.nuGetServerUrl != '' && github.event.inputs.nuGetServerUrl || (vars.RUNTIMENUGETSERVERURL != '' && vars.RUNTIMENUGETSERVERURL || vars.NUGETSERVERURL) }}
+          org: ${{ github.event.inputs.org }}
           repos: ${{ github.event.inputs.repos }}
           secrets: ${{ toJson(secrets) }}
         run: |

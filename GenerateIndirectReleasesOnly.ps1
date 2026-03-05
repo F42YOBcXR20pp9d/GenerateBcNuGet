@@ -6,7 +6,18 @@ $nuGetServerUrl, $githubRepository = GetNuGetServerUrlAndRepository -nuGetServer
 $secrets = $env:secrets | ConvertFrom-Json
 $token = $secrets.GHTOKENWORKFLOW
 
+# Auto-discover repos from org or use explicit list
+$org = $env:org
 $repos = $env:repos
+if ($org) {
+    $discoveredRepos = @(DiscoverOrgRepos -token $token -org $org -filenamePattern "*-Apps-*")
+    if ($repos) {
+        $repos = ($repos.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }) + $discoveredRepos | Select-Object -Unique
+        $repos = $repos -join ','
+    } else {
+        $repos = $discoveredRepos -join ','
+    }
+}
 
 # All apps from all repos get indirect packages
 $apps = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")

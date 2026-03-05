@@ -34,6 +34,54 @@ function GetRuntimeDependencyPackageId {
     return $runtimeDependencyPackageId
 }
 
+function DiscoverOrgRepos {
+    Param(
+        [string] $token,
+        [string] $org,
+        [string] $filenamePattern = "*-Apps-*"
+    )
+
+    $authenticationToken = [System.Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$token"))
+    $headers = @{
+        "Authorization" = [String]::Format("Basic {0}", $authenticationToken)
+        "Content-Type"  = "application/json"
+    }
+
+    Write-Host "Discovering repos in org '$org' with release assets matching '$filenamePattern'..."
+
+    $repos = @()
+    $page = 1
+    while ($true) {
+        $reposUri = "https://api.github.com/orgs/$org/repos?per_page=100&page=$page"
+        $repoPage = @(Invoke-RestMethod -Method GET -Uri $reposUri -Headers $headers)
+        if ($repoPage.Count -eq 0) { break }
+        $repos += $repoPage
+        if ($repoPage.Count -lt 100) { break }
+        $page++
+    }
+
+    Write-Host "Found $($repos.Count) repos in org '$org'"
+
+    $matchingRepos = @()
+    foreach ($repo in $repos) {
+        try {
+            $releasesUri = "https://api.github.com/repos/$($repo.full_name)/releases/latest"
+            $release = Invoke-RestMethod -Method GET -Uri $releasesUri -Headers $headers
+            $matchingAssets = @($release.assets | Where-Object { $_.name -like $filenamePattern })
+            if ($matchingAssets.Count -gt 0) {
+                Write-Host "  + $($repo.full_name) ($(($matchingAssets | ForEach-Object { $_.name }) -join ', '))"
+                $matchingRepos += $repo.full_name
+            }
+        }
+        catch {
+            # No releases or other error - skip
+        }
+    }
+
+    Write-Host "Discovered $($matchingRepos.Count) repos with matching releases"
+    return $matchingRepos
+}
+
 function LatestRelease {
     Param(
         [string] $token,
