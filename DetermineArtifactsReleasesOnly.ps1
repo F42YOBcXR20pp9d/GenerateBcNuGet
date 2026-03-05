@@ -30,12 +30,18 @@ if ($org) {
 $appFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Apps-*")
 $depFiles = @(LatestReleases -token $token -repos $repos -filenamePattern "*-Dependencies-*")
 
-# Non-Microsoft dependencies also get runtime packages
+# Non-Microsoft dependencies also get runtime packages, deduplicate by app id
 $apps = @($appFiles)
+$knownAppIds = @{}
+foreach ($appFile in $apps) {
+    $appJson = Get-AppJsonFromAppFile -appFile $appFile
+    $knownAppIds[$appJson.id] = $true
+}
 foreach ($depFile in $depFiles) {
     $depJson = Get-AppJsonFromAppFile -appFile $depFile
-    if ($depJson.publisher -ne 'Microsoft') {
+    if ($depJson.publisher -ne 'Microsoft' -and -not $knownAppIds.ContainsKey($depJson.id)) {
         $apps += $depFile
+        $knownAppIds[$depJson.id] = $true
     }
 }
 
