@@ -98,7 +98,7 @@ jobs:
   GenerateRuntimeNuGetPackages:
     needs: [ DetermineArtifacts ]
     if: needs.DetermineArtifacts.outputs.artifactVersionCount > 0
-    runs-on: [ windows-latest ]
+    runs-on: [ windows-2022 ]
     strategy:
       matrix:
         include: ${{ fromJson(needs.DetermineArtifacts.outputs.artifactVersions) }}
