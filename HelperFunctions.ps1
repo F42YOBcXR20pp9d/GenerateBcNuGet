@@ -11,6 +11,8 @@ $bcContainerHelperPath = (Get-Item -Path (Join-Path $tempName "*\BcContainerHelp
 
 $bcContainerHelperConfig.DoNotUseCdnForArtifacts = $true
 
+. (Join-Path $PSScriptRoot "RuntimeAppFiles.ps1")
+
 $ErrorActionPreference = "stop"
 
 function GetRuntimeDependencyPackageId {
@@ -298,18 +300,20 @@ function GenerateRuntimeAppFiles {
     $global:countrySpecificRuntimeAppFiles = @{}
     # Pass apps also as publishApps so inter-app dependencies are resolved
     $allPublishApps = $dependencies + $apps
-    Convert-BcAppsToRuntimePackages -containerName $containerName -artifactUrl $artifacturl -imageName '' -apps $apps -publishApps $allPublishApps -licenseFile $licenseFileUrl -skipVerification -afterEachRuntimeCreation { Param($ht)
-        if (-not $ht.runtimeFile) { throw "Could not generate runtime package" }
+    $runtimeFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([Guid]::NewGuid().ToString())
+    Convert-BcAppsToRuntimePackages -containerName $containerName -artifactUrl $artifacturl -imageName '' -apps $apps -publishApps $allPublishApps -licenseFile $licenseFileUrl -skipVerification -destinationFolder $runtimeFolder -afterEachRuntimeCreation { Param($ht)
+        $runtimeFile = ResolveRuntimeAppFile -destinationFolder $runtimeFolder -runtimeFile $ht.runtimeFile
         $appName = [System.IO.Path]::GetFileName($ht.appFile)
-        $global:runtimeAppFiles += @{ $appName = $ht.runtimeFile }
+        $global:runtimeAppFiles += @{ $appName = $runtimeFile }
         $global:countrySpecificRuntimeAppFiles += @{ $appName = @{} }
     } | Out-Null
     foreach($ct in $additionalCountries) {
         $artifacturl = Get-BCArtifactUrl -type $type -country $ct -version $artifactVersion -select Closest
-        Convert-BcAppsToRuntimePackages -containerName $containerName -artifactUrl $artifacturl -imageName '' -apps $apps -publishApps $allPublishApps -licenseFile $licenseFileUrl -skipVerification -afterEachRuntimeCreation { Param($ht)
-            if (-not $ht.runtimeFile) { throw "Could not generate runtime package" }
+        $runtimeFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([Guid]::NewGuid().ToString())
+        Convert-BcAppsToRuntimePackages -containerName $containerName -artifactUrl $artifacturl -imageName '' -apps $apps -publishApps $allPublishApps -licenseFile $licenseFileUrl -skipVerification -destinationFolder $runtimeFolder -afterEachRuntimeCreation { Param($ht)
+            $runtimeFile = ResolveRuntimeAppFile -destinationFolder $runtimeFolder -runtimeFile $ht.runtimeFile
             $appName = [System.IO.Path]::GetFileName($ht.appFile)
-            $global:countrySpecificRuntimeAppFiles."$appName" += @{ $ct = $ht.runtimeFile }
+            $global:countrySpecificRuntimeAppFiles."$appName" += @{ $ct = $runtimeFile }
         } | Out-Null
     }
     return $global:runtimeAppFiles, $global:countrySpecificRuntimeAppFiles
